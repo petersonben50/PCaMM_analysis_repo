@@ -1,0 +1,128 @@
+---
+title: "PCaMM trials - HPG-Hg(II) interactions"
+author: "Benjamin D. Peterson"
+date: "2024-06-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+library(readxl)
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(echo = TRUE)
+new.wd <- gsub("\\/[[:alpha:]]+$", "", getwd())
+knitr::opts_knit$set(root.dir = new.wd)
+rm(new.wd)
+```
+
+# Read in metadata
+
+First I prepped the metadata for this specific experiment and selected what I needed.
+
+```{r prep_metadata, message = FALSE}
+incubation_metadata <- read_xlsx("metadata/PCaMM_incubations_metadata.xlsx",
+                                 sheet = "incubationInfo",
+                                 skip = 1) %>%
+  filter(incubationType == "PCaMM trial runs - HPG-Hg(II) interactions") %>%
+  mutate(start_point = lubridate::ymd_hm(paste(startDate, startTime))) %>%
+  select(incubationID, treatment, start_point)
+
+# Sediments
+sediment_container_info <- read_xlsx("metadata/PCaMM_incubations_metadata.xlsx",
+                                 sheet = "containerInfo_Hg",
+                                 skip = 1) %>%
+  mutate(end_point = lubridate::ymd_hm(paste(dateKilled, timeKilled)))
+
+sediment_metadata <- right_join(sediment_container_info,
+                                incubation_metadata) %>%
+  select(containerID, incubationID, depth_cm, treatment, start_point, end_point)
+
+# Porewaters
+PW_container_info <- read_xlsx("metadata/PCaMM_incubations_metadata.xlsx",
+                                 sheet = "containerInfo_other") %>%
+  mutate(end_point = lubridate::ymd_hm(paste(dateKilled, timeKilled)))
+PW_metadata <- right_join(PW_container_info,
+                          incubation_metadata) %>%
+  select(containerID, incubationID, treatment, Notes, start_point, end_point)
+
+```
+
+
+# Prepare sediment data
+
+I read in sediment MeHg data. NOTE, THIS IS PRELIMINARY DATA AND HAS NOT BEEN REVIEWED YET.
+
+```{r prep_sed_MeHg_data}
+sed_MeHg_data <- read_xlsx("../data/20240531a_MerxM_iCAP_raw_seds_CorrectOrder.xlsx",
+                           sheet = "Sample_data") %>%
+  mutate(MeHg_amb_ng_g = `Ambient MeHg`,
+         MeHg_204_ng_g = `MeHg from Source_1`) %>%
+  filter(grepl("PCaMM", containerID)) %>%
+  select(containerID, MeHg_amb_ng_g, MeHg_204_ng_g)
+```
+
+Then I combined all the sediment data.
+
+```{r combine_all_sed_data, message = FALSE}
+all_sed_data <- left_join(sediment_metadata,
+                          sed_MeHg_data)
+```
+
+
+
+# Check percent dry weight
+
+
+
+# Check MeHg concentrations
+
+Noting here again that THIS IS PRELIMINARY DATA THAT HAS NOT BEEN REVIEWED YET.
+```{r plot_sed_MeHg_data, echo = FALSE}
+all_sed_data %>%
+  filter(!is.na(MeHg_204_ng_g)) %>%
+  ggplot(aes(x = treatment,
+             y = MeHg_204_ng_g,
+             col = depth_cm,
+             shape = incubationID)) +
+  geom_point() +
+  ylim(c(0, max(all_sed_data$MeHg_204_ng_g, na.rm = TRUE)*1.1)) +
+  theme_bw()
+```
+
+
+# Prepare porewater data
+
+I read in porewater MeHg data. NOTE, THIS IS PRELIMINARY DATA AND HAS NOT BEEN REVIEWED YET.
+
+```{r prep_PW_MeHg_data}
+PW_MeHg_data <- read_xlsx("../data/20240530a_MerxM_iCAP_raw_waters_204_PCaMM.xlsx",
+                          sheet = "Sample_data") %>%
+  mutate(MeHg_amb_ng_l = `Ambient MeHg`,
+         MeHg_204_ng_l = `MeHg from Source_1`) %>%
+  filter(grepl("PCaMM", containerID)) %>%
+  select(containerID, MeHg_amb_ng_l, MeHg_204_ng_l)
+```
+
+Then I combined all the porewater data.
+
+```{r combine_all_PW_data, message = FALSE}
+all_PW_data <- left_join(PW_metadata,
+                         PW_MeHg_data)
+```
+
+# Visualize PW data
+
+Noting here again that THIS IS PRELIMINARY DATA THAT HAS NOT BEEN REVIEWED YET.
+```{r plot_PW_MeHg_data, echo = FALSE}
+all_PW_data %>%
+  # filter(!is.na(MeHg_204_ng_g)) %>%
+  ggplot(aes(x = treatment,
+             y = MeHg_204_ng_l,
+             col = Notes,
+             shape = incubationID)) +
+  geom_point() +
+  ylim(c(0, max(all_PW_data$MeHg_204_ng_l, na.rm = TRUE)*1.1)) +
+  theme_bw()
+```
