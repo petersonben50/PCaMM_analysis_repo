@@ -63,32 +63,66 @@ sed_MeHg_data <- read_xlsx("../data/20240531a_MerxM_iCAP_raw_seds_CorrectOrder.x
   select(containerID, MeHg_amb_ng_g, MeHg_204_ng_g)
 ```
 
+Prepare the freeze-dry information.
+
+```{r prepare_freeze_dry_info}
+percent_dry_weight_data <- sediment_container_info %>%
+  mutate(percent_dry_weight = (massWithDriedSample - massNonSampleMaterial) / (massWithWetSample - massNonSampleMaterial) * 100) %>%
+  select(containerID, percent_dry_weight)
+
+```
+
 Then I combined all the sediment data.
 
 ```{r combine_all_sed_data, message = FALSE}
 all_sed_data <- left_join(sediment_metadata,
-                          sed_MeHg_data)
+                          percent_dry_weight_data) %>%
+  left_join(sed_MeHg_data %>%
+              mutate(containerID = gsub("_0", "_00", containerID)))
 ```
 
 
 
 # Check percent dry weight
 
+```{r plot_sed_dry_weight_data, echo = FALSE}
+all_sed_data %>%
+  filter(!is.na(percent_dry_weight)) %>%
+  ggplot(aes(x = treatment,
+             y = percent_dry_weight,
+             col = depth_cm,
+             shape = incubationID)) +
+  geom_point() +
+  ylim(c(40, 70)) +
+  theme_bw()
+```
 
 
 # Check MeHg concentrations
 
 Noting here again that THIS IS PRELIMINARY DATA THAT HAS NOT BEEN REVIEWED YET.
 ```{r plot_sed_MeHg_data, echo = FALSE}
-all_sed_data %>%
-  filter(!is.na(MeHg_204_ng_g)) %>%
-  ggplot(aes(x = treatment,
-             y = MeHg_204_ng_g,
-             col = depth_cm,
-             shape = incubationID)) +
-  geom_point() +
-  ylim(c(0, max(all_sed_data$MeHg_204_ng_g, na.rm = TRUE)*1.1)) +
-  theme_bw()
+ggpubr::ggarrange(all_sed_data %>%
+                    filter(!is.na(MeHg_204_ng_g)) %>%
+                    ggplot(aes(x = treatment,
+                               y = MeHg_amb_ng_g,
+                               col = depth_cm,
+                               shape = incubationID)) +
+                    geom_point() +
+                    ylim(c(0, max(all_sed_data$MeHg_amb_ng_g, na.rm = TRUE)*1.1)) +
+                    theme_bw() +
+                    theme(legend.position = "inside",
+                          legend.position.inside = c(0.8, 0.2)),
+                  all_sed_data %>%
+                    filter(!is.na(MeHg_204_ng_g)) %>%
+                    ggplot(aes(x = treatment,
+                               y = MeHg_204_ng_g,
+                               col = depth_cm,
+                               shape = incubationID)) +
+                    geom_point() +
+                    ylim(c(0, max(all_sed_data$MeHg_204_ng_g, na.rm = TRUE)*1.1)) +
+                    theme_bw() +
+                    theme(legend.position = "none")) 
 ```
 
 
