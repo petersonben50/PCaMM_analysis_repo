@@ -36,5 +36,7 @@ plbs_dir: "/home/uwm/petersob/Data/Peterson_Lab_Bioinformatics_Scaffold"
 pyrodigal_wrapper_script: "executables/MGassemblyAnnotation/annotate_MGassembly_ORFs_pyrodigal.py"
 
 #==============================================================================#
-#                                                                              #
+#                           Pyrodigal Parameters                               #
 #==============================================================================#
+pyrodigal_output_format: "gff"
+pyrodigal_procedure: "anon"
