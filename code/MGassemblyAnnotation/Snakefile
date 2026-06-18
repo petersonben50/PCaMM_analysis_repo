@@ -1,0 +1,83 @@
+#==============================================================================#
+#                       Snakemake Workflow (Snakefile)                         #
+#==============================================================================#
+
+# --- 1. Configuration Loading ---
+# Load parameters from config.yaml
+configfile: "config/config.yaml"
+
+# --- 2. Global Variables ---
+# Data and directories
+ASSEMBLIES = config["assemblies_to_process"]
+ASSEMBLIES_DIR = config["assemblies_dir"]
+HOME_DIR = config["home_dir"]
+DATA_FINAL = config["data_final"]
+
+# Pyrodigal parameters
+PYRODIGAL_OUTPUT_FORMAT = config.get("pyrodigal_output_format", "gff")
+PYRODIGAL_PROCEDURE = config.get("pyrodigal_procedure", "anon")
+
+
+# Containers
+PYRODIGAL_CONTAINER = config["pyrodigal_container"]
+
+# PLBS scripts
+PLBS_DIR = config["plbs_dir"]
+PYRODIGAL_WRAPPER = f"{PLBS_DIR}/{config['pyrodigal_wrapper_script']}"
+
+# Output file extensions and folders
+ASSEMBLY_EXT = config.get("assembly_ext", ".fna")
+PROTEIN_EXT = config.get("pyrodigal_protein_ext", ".faa")
+GFF_EXT = config.get("pyrodigal_gff_ext", ".gff")
+
+ANNOTATION_DIR = f"{HOME_DIR}/{DATA_FINAL}/MGassemblyAnnotation/ORFs"
+
+# --- 3. Check for locations and files before running workflow ---
+# Check if assemblies directory exists
+if not os.path.isdir(ASSEMBLIES_DIR):
+    raise FileNotFoundError(f"Assemblies directory not found: {ASSEMBLIES_DIR}")
+# Check if each assembly file exists
+for assembly in ASSEMBLIES:
+    assembly_path = f"{ASSEMBLIES_DIR}/{assembly}{ASSEMBLY_EXT}"
+    if not os.path.isfile(assembly_path):
+        raise FileNotFoundError(f"Assembly file not found: {assembly_path}")
+# Check if Pyrodigal container exists
+if not os.path.isfile(PYRODIGAL_CONTAINER):
+    raise FileNotFoundError(f"Pyrodigal container not found: {PYRODIGAL_CONTAINER}")
+# Check if Pyrodigal wrapper script exists
+if not os.path.isfile(PYRODIGAL_WRAPPER):
+    raise FileNotFoundError(f"Pyrodigal wrapper script not found: {PYRODIGAL_WRAPPER}")
+# Check if PLBS directory exists
+if not os.path.isdir(PLBS_DIR):
+    raise FileNotFoundError(f"PLBS directory not found: {PLBS_DIR}")
+
+# --- 4. Rule All ---
+rule all:
+    input:
+        expand(f"{ANNOTATION_DIR}/{{assembly}}{PROTEIN_EXT}", assembly=ASSEMBLIES),
+        expand(f"{ANNOTATION_DIR}/{{assembly}}{GFF_EXT}", assembly=ASSEMBLIES)
+
+# --- 5. Rule to annotate ORFs using Pyrodigal ---
+rule annotate_assembly_orfs_pyrodigal:
+    input:
+        assembly=lambda wc: f"{ASSEMBLIES_DIR}/{wc.assembly}{ASSEMBLY_EXT}"
+    output:
+        protein=f"{ANNOTATION_DIR}/{{assembly}}{PROTEIN_EXT}",
+        gff=f"{ANNOTATION_DIR}/{{assembly}}{GFF_EXT}"
+    threads: 1
+    shell:
+        """
+        mkdir -p "{ANNOTATION_DIR}" &&
+        apptainer exec \
+            -B "{ASSEMBLIES_DIR}:{ASSEMBLIES_DIR}" \
+            -B "{HOME_DIR}:{HOME_DIR}" \
+            -B "{PLBS_DIR}:{PLBS_DIR}" \
+            "{PYRODIGAL_CONTAINER}" \
+            python "{PYRODIGAL_WRAPPER}" \
+                --input-assemblies "{input.assembly}" \
+                --output-dir "{ANNOTATION_DIR}" \
+                --output-format "{PYRODIGAL_OUTPUT_FORMAT}" \
+                --procedure "{PYRODIGAL_PROCEDURE}" \
+                --protein-ext "{PROTEIN_EXT}" \
+                --gff-ext "{GFF_EXT}"
+        """

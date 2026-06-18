@@ -1,0 +1,40 @@
+#==============================================================================#
+#                       Snakemake Configuration (config.yaml)                  #
+#==============================================================================#
+
+#==============================================================================#
+#                                    Global                                    #
+#==============================================================================#
+
+# --- Sample Definitions ---
+# List of assembly IDs to process.
+assemblies_to_process:
+  - "ECBPP6_20220826_contigs"
+  - "SitukuyokBP_2023_contigs"
+  - "TKL807_20230823_contigs"
+  - "WCBP1P2_20230826_contigs"
+  - "RCBP2P4_20220823_contigs"
+  - "TKL524_20230828_contigs"
+  - "TKL873_20230823_contigs"
+  - "WCBP1P4_20230826_contigs"
+
+# Directory for assemblies.
+assemblies_dir: "/home/uwm/petersob/Data/metagenomes/AK/assemblies"
+
+# Home directory for the workflow.
+home_dir: "/home/uwm/petersob/Data/petersob/AK"
+# Directory where all processed data will be stored
+data_temp: "data_temp"
+# Directory where all final data will be stored
+data_final: "data_final"
+
+# Apptainer container names
+pyrodigal_container: "/home/uwm/petersob/Data/containers/pyrodigal.sif"
+
+# Wrapper scripts. Relative to PLBS.
+plbs_dir: "/home/uwm/petersob/Data/Peterson_Lab_Bioinformatics_Scaffold"
+pyrodigal_wrapper_script: "executables/MGassemblyAnnotation/annotate_MGassembly_ORFs_pyrodigal.py"
+
+#==============================================================================#
+#                                                                              #
+#==============================================================================#
