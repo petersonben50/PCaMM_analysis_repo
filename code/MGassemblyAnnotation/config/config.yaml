@@ -19,7 +19,7 @@ assemblies_to_process:
   - "WCBP1P4_20230826_contigs"
 
 # Directory for assemblies.
-assemblies_dir: "/tank/data/LS/petersob/petersob/AK/assemblies"
+assemblies_dir: "/tank/data/LS/petersob/metagenomes/AK/assemblies"
 
 # Home directory for the workflow.
 home_dir: "/tank/data/LS/petersob/petersob/AK/"
