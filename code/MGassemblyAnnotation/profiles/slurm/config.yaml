@@ -21,3 +21,4 @@ set-resources:
   - annotate_assembly_orfs_pyrodigal:cpus_per_task=1
   - annotate_assembly_orfs_pyrodigal:mem_mb=4000
   - annotate_assembly_orfs_pyrodigal:runtime=14400
+  

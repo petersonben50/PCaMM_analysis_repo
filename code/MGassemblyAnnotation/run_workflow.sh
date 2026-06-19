@@ -16,11 +16,11 @@ source /tank/data/LS/petersob/petersob/conda/bin/activate
 conda activate snakemake_env
 
 # Retrieve the latest version of the PLBS from GitHub
-cd /home/uwm/petersob/Data/Peterson_Lab_Bioinformatics_Scaffold
+cd /tank/data/LS/petersob/Peterson_Lab_Bioinformatics_Scaffold
 git pull origin main
 
 # Navigate to your workflow directory
-cd /home/uwm/petersob/Data/petersob/AK/PCaMM_analysis_repo/code/MGassemblyAnnotation
+cd /tank/data/LS/petersob/petersob/AK/PCaMM_analysis_repo/code/MGassemblyAnnotation
 
 
 # Make sure Apptainer is added to plat

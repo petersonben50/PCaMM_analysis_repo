@@ -19,20 +19,20 @@ assemblies_to_process:
   - "WCBP1P4_20230826_contigs"
 
 # Directory for assemblies.
-assemblies_dir: "/home/uwm/petersob/Data/metagenomes/AK/assemblies"
+assemblies_dir: "/tank/data/LS/petersob/petersob/AK/assemblies"
 
 # Home directory for the workflow.
-home_dir: "/home/uwm/petersob/Data/petersob/AK"
+home_dir: "/tank/data/LS/petersob/petersob/AK/"
 # Directory where all processed data will be stored
 data_temp: "data_temp"
 # Directory where all final data will be stored
 data_final: "data_final"
 
 # Apptainer container names
-pyrodigal_container: "/home/uwm/petersob/Data/containers/pyrodigal.sif"
+pyrodigal_container: "/tank/data/LS/petersob/containers/pyrodigal.sif"
 
 # Wrapper scripts. Relative to PLBS.
-plbs_dir: "/home/uwm/petersob/Data/Peterson_Lab_Bioinformatics_Scaffold"
+plbs_dir: "/tank/data/LS/petersob/Peterson_Lab_Bioinformatics_Scaffold"
 pyrodigal_wrapper_script: "executables/MGassemblyAnnotation/annotate_MGassembly_ORFs_pyrodigal.py"
 
 #==============================================================================#
@@ -40,3 +40,7 @@ pyrodigal_wrapper_script: "executables/MGassemblyAnnotation/annotate_MGassembly_
 #==============================================================================#
 pyrodigal_output_format: "gff"
 pyrodigal_procedure: "anon"
+
+
+# config.yaml
+slurm-jobstep: false
