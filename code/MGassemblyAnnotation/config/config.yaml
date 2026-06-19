@@ -22,7 +22,7 @@ assemblies_to_process:
 assemblies_dir: "/tank/data/LS/petersob/metagenomes/AK/assemblies"
 
 # Home directory for the workflow.
-home_dir: "/tank/data/LS/petersob/petersob/AK/"
+home_dir: "/tank/data/LS/petersob/petersob/AK"
 # Directory where all processed data will be stored
 data_temp: "data_temp"
 # Directory where all final data will be stored
@@ -39,7 +39,7 @@ pyrodigal_wrapper_script: "executables/MGassemblyAnnotation/annotate_MGassembly_
 #                           Pyrodigal Parameters                               #
 #==============================================================================#
 pyrodigal_output_format: "gff"
-pyrodigal_procedure: "anon"
+pyrodigal_procedure: "meta"
 
 
 # config.yaml
