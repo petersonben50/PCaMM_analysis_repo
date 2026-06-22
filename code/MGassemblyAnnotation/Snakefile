@@ -121,4 +121,5 @@ rule search_hgca_hmm:
                 --cpu {threads} \
                 --cut-tc \
                 --output-basename "{{assembly}}__hgcA"
+        """
 
