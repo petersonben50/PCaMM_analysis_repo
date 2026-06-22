@@ -15,15 +15,20 @@ DATA_FINAL = config["data_final"]
 
 # Pyrodigal parameters
 PYRODIGAL_OUTPUT_FORMAT = config.get("pyrodigal_output_format", "gff")
-PYRODIGAL_PROCEDURE = config.get("pyrodigal_procedure", "anon")
-
+PYRODIGAL_PROCEDURE = config.get("pyrodigal_procedure", "meta")
 
 # Containers
 PYRODIGAL_CONTAINER = config["pyrodigal_container"]
+HMMER_CONTAINER = config["hmmer_container"]
 
 # PLBS scripts
 PLBS_DIR = config["plbs_dir"]
 PYRODIGAL_WRAPPER = f"{PLBS_DIR}/{config['pyrodigal_wrapper_script']}"
+HMM_SEARCH_WRAPPER = f"{PLBS_DIR}/{config['hmm_search_script']}"
+
+# HMM resources
+HGCA_HMM = f"{PLBS_DIR}/{config['hgca_hmm']}"
+HMM_CUTOFF_TYPE = config.get("hmm_cutoff_type", "cut_tc")
 
 # Output file extensions and folders
 ASSEMBLY_EXT = config.get("assembly_ext", ".fna")
@@ -31,6 +36,7 @@ PROTEIN_EXT = config.get("pyrodigal_protein_ext", ".faa")
 GFF_EXT = config.get("pyrodigal_gff_ext", ".gff")
 
 ANNOTATION_DIR = f"{HOME_DIR}/{DATA_FINAL}/MGassemblyAnnotation/ORFs"
+HMM_OUTPUT_DIR = f"{HOME_DIR}/{DATA_FINAL}/MGassemblyAnnotation/hgcA_HMM"
 
 # --- 3. Check for locations and files before running workflow ---
 # Check if assemblies directory exists
@@ -44,18 +50,28 @@ for assembly in ASSEMBLIES:
 # Check if Pyrodigal container exists
 if not os.path.isfile(PYRODIGAL_CONTAINER):
     raise FileNotFoundError(f"Pyrodigal container not found: {PYRODIGAL_CONTAINER}")
+# Check if HMMER container exists
+if not os.path.isfile(HMMER_CONTAINER):
+    raise FileNotFoundError(f"HMMER container not found: {HMMER_CONTAINER}")
 # Check if Pyrodigal wrapper script exists
 if not os.path.isfile(PYRODIGAL_WRAPPER):
     raise FileNotFoundError(f"Pyrodigal wrapper script not found: {PYRODIGAL_WRAPPER}")
+# Check if HMM search wrapper script exists
+if not os.path.isfile(HMM_SEARCH_WRAPPER):
+    raise FileNotFoundError(f"HMM search wrapper script not found: {HMM_SEARCH_WRAPPER}")
 # Check if PLBS directory exists
 if not os.path.isdir(PLBS_DIR):
     raise FileNotFoundError(f"PLBS directory not found: {PLBS_DIR}")
+# Check if hgcA HMM file exists
+if not os.path.isfile(HGCA_HMM):
+    raise FileNotFoundError(f"hgcA HMM file not found: {HGCA_HMM}")
 
 # --- 4. Rule All ---
 rule all:
     input:
         expand(f"{ANNOTATION_DIR}/{{assembly}}{PROTEIN_EXT}", assembly=ASSEMBLIES),
-        expand(f"{ANNOTATION_DIR}/{{assembly}}{GFF_EXT}", assembly=ASSEMBLIES)
+        expand(f"{ANNOTATION_DIR}/{{assembly}}{GFF_EXT}", assembly=ASSEMBLIES),
+        expand(f"{HMM_OUTPUT_DIR}/{{assembly}}__hgcA.hmm_hits.faa", assembly=ASSEMBLIES)
 
 # --- 5. Rule to annotate ORFs using Pyrodigal ---
 rule annotate_assembly_orfs_pyrodigal:
@@ -81,3 +97,28 @@ rule annotate_assembly_orfs_pyrodigal:
                 --protein-ext "{PROTEIN_EXT}" \
                 --gff-ext "{GFF_EXT}"
         """
+
+# --- 6. Rule to search for hgcA using HMM ---
+rule search_hgca_hmm:
+    input:
+        protein=f"{ANNOTATION_DIR}/{{assembly}}{PROTEIN_EXT}"
+    output:
+        hits_faa=f"{HMM_OUTPUT_DIR}/{{assembly}}__hgcA.hmm_hits.faa"
+    threads: 4
+    shell:
+        """
+        mkdir -p "{HMM_OUTPUT_DIR}" &&
+        apptainer exec \
+            -B "{ANNOTATION_DIR}:{ANNOTATION_DIR}" \
+            -B "{HMM_OUTPUT_DIR}:{HMM_OUTPUT_DIR}" \
+            -B "{PLBS_DIR}:{PLBS_DIR}" \
+            "{HMMER_CONTAINER}" \
+            python "{HMM_SEARCH_WRAPPER}" \
+                --hmm-model "{HGCA_HMM}" \
+                --input-aa-orfs "{input.protein}" \
+                --output-dir "{HMM_OUTPUT_DIR}" \
+                --hmmer-container "{HMMER_CONTAINER}" \
+                --cpu {threads} \
+                --cut-tc \
+                --output-basename "{{assembly}}__hgcA"
+

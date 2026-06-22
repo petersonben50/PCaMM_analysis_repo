@@ -30,16 +30,26 @@ data_final: "data_final"
 
 # Apptainer container names
 pyrodigal_container: "/tank/data/LS/petersob/containers/pyrodigal.sif"
+hmmer_container: "/tank/data/LS/petersob/containers/hmmer.sif"
 
 # Wrapper scripts. Relative to PLBS.
 plbs_dir: "/tank/data/LS/petersob/Peterson_Lab_Bioinformatics_Scaffold"
 pyrodigal_wrapper_script: "executables/MGassemblyAnnotation/annotate_MGassembly_ORFs_pyrodigal.py"
+hmm_search_script: "executables/MGassemblyAnnotation/annotate_MGassembly_HMMsearch.py"
+
+# HMM resources (relative to PLBS_DIR)
+hgca_hmm: "resources/HMMs/hgcA"
 
 #==============================================================================#
 #                           Pyrodigal Parameters                               #
 #==============================================================================#
 pyrodigal_output_format: "gff"
 pyrodigal_procedure: "meta"
+
+#==============================================================================#
+#                         HMM Search Parameters                                #
+#==============================================================================#
+hmm_cutoff_type: "cut_tc"  # Use trusted cutoff from HMM model
 
 
 # config.yaml
