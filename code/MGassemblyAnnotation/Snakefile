@@ -120,6 +120,6 @@ rule search_hgca_hmm:
                 --hmmer-container "{HMMER_CONTAINER}" \
                 --cpu {threads} \
                 --cut-tc \
-                --output-basename "{{assembly}}__hgcA"
+                --output-basename "{wildcards.assembly}__hgcA"
         """
 
