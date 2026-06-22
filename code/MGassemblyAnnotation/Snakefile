@@ -117,7 +117,6 @@ rule search_hgca_hmm:
                 --hmm-model "{HGCA_HMM}" \
                 --input-aa-orfs "{input.protein}" \
                 --output-dir "{HMM_OUTPUT_DIR}" \
-                --hmmer-container "{HMMER_CONTAINER}" \
                 --cpu {threads} \
                 --cut-tc \
                 --output-basename "{wildcards.assembly}__hgcA"
