@@ -38,7 +38,7 @@ pyrodigal_wrapper_script: "executables/MGassemblyAnnotation/annotate_MGassembly_
 hmm_search_script: "executables/MGassemblyAnnotation/annotate_MGassembly_HMMsearch.py"
 
 # HMM resources (relative to PLBS_DIR)
-hgca_hmm: "resources/HMMs/hgcA"
+hgca_hmm: "resources/HMMs/hgcA.hmm"
 
 #==============================================================================#
 #                           Pyrodigal Parameters                               #
