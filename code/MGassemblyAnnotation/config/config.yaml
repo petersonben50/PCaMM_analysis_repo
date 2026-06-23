@@ -39,6 +39,8 @@ hmm_search_script: "executables/MGassemblyAnnotation/annotate_MGassembly_HMMsear
 
 # HMM resources (relative to PLBS_DIR)
 hgca_hmm: "resources/HMMs/hgcA.hmm"
+rp16_list: "resources/lists/rp16_list.txt"
+rp16_hmm_dir: "resources/HMMs"
 
 #==============================================================================#
 #                           Pyrodigal Parameters                               #
@@ -49,7 +51,8 @@ pyrodigal_procedure: "meta"
 #==============================================================================#
 #                         HMM Search Parameters                                #
 #==============================================================================#
-hmm_cutoff_type: "cut_tc"  # Use trusted cutoff from HMM model
+hmm_cutoff_type: "cut_tc"  # Use trusted cutoff for hgcA HMM model
+rp16_cutoff_type: "cut_nc"  # Use noise cutoff for rp16 HMM models
 
 
 # config.yaml

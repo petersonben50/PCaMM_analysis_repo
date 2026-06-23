@@ -29,6 +29,9 @@ HMM_SEARCH_WRAPPER = f"{PLBS_DIR}/{config['hmm_search_script']}"
 # HMM resources
 HGCA_HMM = f"{PLBS_DIR}/{config['hgca_hmm']}"
 HMM_CUTOFF_TYPE = config.get("hmm_cutoff_type", "cut_tc")
+RP16_LIST_PATH = f"{PLBS_DIR}/{config['rp16_list']}"
+RP16_HMM_DIR = f"{PLBS_DIR}/{config['rp16_hmm_dir']}"
+RP16_DOMAINS = ["arch", "bact"]
 
 # Output file extensions and folders
 ASSEMBLY_EXT = config.get("assembly_ext", ".fna")
@@ -37,6 +40,7 @@ GFF_EXT = config.get("pyrodigal_gff_ext", ".gff")
 
 ANNOTATION_DIR = f"{HOME_DIR}/{DATA_FINAL}/MGassemblyAnnotation/ORFs"
 HMM_OUTPUT_DIR = f"{HOME_DIR}/{DATA_FINAL}/MGassemblyAnnotation/hgcA_HMM"
+RP16_OUTPUT_DIR = f"{HOME_DIR}/{DATA_FINAL}/MGassemblyAnnotation/rp16_HMM"
 
 # --- 3. Check for locations and files before running workflow ---
 # Check if assemblies directory exists
@@ -65,13 +69,25 @@ if not os.path.isdir(PLBS_DIR):
 # Check if hgcA HMM file exists
 if not os.path.isfile(HGCA_HMM):
     raise FileNotFoundError(f"hgcA HMM file not found: {HGCA_HMM}")
+# Check if rp16 list exists and load protein names
+if not os.path.isfile(RP16_LIST_PATH):
+    raise FileNotFoundError(f"rp16 list not found: {RP16_LIST_PATH}")
+with open(RP16_LIST_PATH) as _f:
+    RP16_PROTEINS = [line.strip() for line in _f if line.strip()]
+if not RP16_PROTEINS:
+    raise ValueError(f"rp16 list is empty: {RP16_LIST_PATH}")
+# Check if rp16 HMM directory exists
+if not os.path.isdir(RP16_HMM_DIR):
+    raise FileNotFoundError(f"rp16 HMM directory not found: {RP16_HMM_DIR}")
 
 # --- 4. Rule All ---
 rule all:
     input:
         expand(f"{ANNOTATION_DIR}/{{assembly}}{PROTEIN_EXT}", assembly=ASSEMBLIES),
         expand(f"{ANNOTATION_DIR}/{{assembly}}{GFF_EXT}", assembly=ASSEMBLIES),
-        expand(f"{HMM_OUTPUT_DIR}/{{assembly}}__hgcA.hmm_hits.faa", assembly=ASSEMBLIES)
+        expand(f"{HMM_OUTPUT_DIR}/{{assembly}}__hgcA.hmm_hits.faa", assembly=ASSEMBLIES),
+        expand(f"{RP16_OUTPUT_DIR}/{{assembly}}__{{rp}}_{{domain}}.hmm_hits.faa",
+               assembly=ASSEMBLIES, rp=RP16_PROTEINS, domain=RP16_DOMAINS)
 
 # --- 5. Rule to annotate ORFs using Pyrodigal ---
 rule annotate_assembly_orfs_pyrodigal:
@@ -120,5 +136,29 @@ rule search_hgca_hmm:
                 --cpu {threads} \
                 --cut-tc \
                 --output-basename "{wildcards.assembly}__hgcA"
+        """
+
+# --- 7. Rule to search for rp16 ribosomal proteins using HMM ---
+rule search_rp16_hmm:
+    input:
+        protein=f"{ANNOTATION_DIR}/{{assembly}}{PROTEIN_EXT}"
+    output:
+        hits_faa=f"{RP16_OUTPUT_DIR}/{{assembly}}__{{rp}}_{{domain}}.hmm_hits.faa"
+    threads: 4
+    shell:
+        """
+        mkdir -p "{RP16_OUTPUT_DIR}" &&
+        apptainer exec \
+            -B "{ANNOTATION_DIR}:{ANNOTATION_DIR}" \
+            -B "{RP16_OUTPUT_DIR}:{RP16_OUTPUT_DIR}" \
+            -B "{PLBS_DIR}:{PLBS_DIR}" \
+            "{HMMER_CONTAINER}" \
+            python "{HMM_SEARCH_WRAPPER}" \
+                --hmm-model "{RP16_HMM_DIR}/{wildcards.rp}_{wildcards.domain}.HMM" \
+                --input-aa-orfs "{input.protein}" \
+                --output-dir "{RP16_OUTPUT_DIR}" \
+                --cpu {threads} \
+                --cut-nc \
+                --output-basename "{wildcards.assembly}__{wildcards.rp}_{wildcards.domain}"
         """
 
