@@ -41,6 +41,13 @@ hmm_search_script: "executables/MGassemblyAnnotation/annotate_MGassembly_HMMsear
 hgca_hmm: "resources/HMMs/hgcA.hmm"
 rp16_list: "resources/lists/rp16_list.txt"
 rp16_hmm_dir: "resources/HMMs"
+# Metabolic marker HMMs (file names, relative to metabolic_hmm_dir)
+metabolic_hmm_dir: "resources/HMMs"
+metabolic_hmms:
+  - "TIGR03080.1.HMM"
+  - "TIGR03256.1.HMM"
+  - "TIGR04550.1.HMM"
+  - "dsrA_TIGR02064.HMM"
 
 #==============================================================================#
 #                           Pyrodigal Parameters                               #
@@ -53,6 +60,7 @@ pyrodigal_procedure: "meta"
 #==============================================================================#
 hmm_cutoff_type: "cut_tc"  # Use trusted cutoff for hgcA HMM model
 rp16_cutoff_type: "cut_nc"  # Use noise cutoff for rp16 HMM models
+metabolic_cutoff_type: "cut_tc"  # Use trusted cutoff for metabolic HMM models
 
 
 # config.yaml
